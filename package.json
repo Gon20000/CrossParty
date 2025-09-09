@@ -1,0 +1,25 @@
+{
+  "name": "CrossParty",
+  "version": "1.0.0",
+  "description": "A multiplayer terminal Tic-Tac-Toe with a WebSocket server and easy setup for desktop or Termux.",
+  "main": "client.ts",
+  "type": "module",
+  "scripts": {
+    "start": "node src/client/client.ts",
+    "server": "node src/server/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Gon20000",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "@types/ws": "~8.18.1",
+    "eslint": "^9.34.0",
+    "globals": "^16.3.0",
+    "typescript-eslint": "^8.40.0"
+  }
+}
