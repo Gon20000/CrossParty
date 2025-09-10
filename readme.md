@@ -65,6 +65,12 @@ We provide a helper script for **Termux users** that:
 - Sets up the client
 - Runs everything directly in Termux the first time (for subsequent runs, use `npm start`)
 
+You can run it easily with:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Gon20000/CrossParty/main/termux_setup.sh | bash
+```
+
 Perfect for quick mobile matches. 📱✨
 
 ---

@@ -1,4 +1,4 @@
-export type ErrorCode = "PlayerNotFound" | "PlayerMatching" | "PlayerInGame" | "GameError"
+export type ErrorCode = "PlayerNotFound" | "PlayerMatching" | "PlayerInGame" | "GameError" | "BadRequest"
 export type GameRequest =
   | {type: "Message", message: string}
   | {type: "Authorization", message: string, id: number}
