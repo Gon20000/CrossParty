@@ -1,7 +1,10 @@
 import type { WebSocket } from "ws";
-import { askYesNo, askNum, getMove, type Aborter } from "../input.ts";
-import { errorMark } from "../styles.ts";
+import { ask, askYesNo, askNum, getMove, type Aborter} from "../input.ts";
+import { readConfig, writeConfig } from "./config.ts";
+import { errorMark, errorMark2 } from "../styles.ts";
 import type { GameRequest } from "../types.ts";
+
+const config = await readConfig();
 
 const init = async (ws : WebSocket, id : number, aborter: Aborter) => {
   const ans = await askYesNo("Do you want to match against another player?", aborter);
@@ -48,6 +51,9 @@ const handleError = async (ws : WebSocket, id : number, req : GameRequest, abort
       console.log(req.message);
       await playMove(ws, aborter);
       break;
+    case "BadRequest":
+      console.error(req.message);
+      break;
     default:
       console.log(req.message);
       await init(ws, id, aborter);
@@ -55,8 +61,42 @@ const handleError = async (ws : WebSocket, id : number, req : GameRequest, abort
   }
 };
 
+const validateURL = (url : string) => {
+  return /^https?:\/\//.test(url) && URL.canParse(url);
+};
+
+const promptURL = async (aborter : Aborter) => {
+  const prompt = "Enter the game link you received from your friend (press enter to use the previous link): ";
+  let url = await ask(prompt, aborter);
+
+  // prompt aborted by the user
+  if (url === null)
+    return null;
+
+  // remove trailing/leading spaces for validation
+  url = url.trim();
+
+  if (url === "") {
+    if (!config.url) {
+      console.error(errorMark2, "Couldn't retrieve the last game link, please try entering a new one.");
+      return promptURL(aborter);
+    }
+
+    url = config.url;
+  }
+
+  if (!validateURL(url)) {
+    console.error(errorMark2, "Invalid URL, Please make sure it starts with http:// or https://");
+    return promptURL(aborter);
+  }
+
+  await writeConfig({url});
+  return url;
+};
+
 export {
   init,
   playMove,
   handleError,
+  promptURL,
 };

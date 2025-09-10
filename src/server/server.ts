@@ -2,6 +2,7 @@ import { WebSocketServer } from "ws";
 import { authorize, send, sendError, sendMessage, updateGame, handleMove, abortGame } from "./util.ts";
 import { Player } from "../game.ts";
 import type { GameRequest } from "../types.ts";
+import { parseRequest } from "../input.ts";
 
 const server = new WebSocketServer({ port: 5050 });
 console.log("Server up!");
@@ -23,7 +24,12 @@ server.on("connection", (ws, _) => {
   ws.on("message", (data) => {
     // UNCOMMENT for debugging
     // console.debug("Message from client:", data.toString());
-    const req : GameRequest = JSON.parse(data.toString());
+
+    const req = parseRequest(data.toString());
+    if (!req) {
+      sendError(ws, "BadRequest");
+      return;
+    }
 
     switch (req.type) {
       case "MatchingRequest": {
@@ -90,6 +96,11 @@ server.on("connection", (ws, _) => {
         // Handle if opponent doesn't exist (defensive scenario)
         if (!player.opponent) {
           sendError(ws, "PlayerNotFound");
+          return;
+        }
+
+        if (!player.game || player.game.currentTurn !== id) {
+          sendError(ws, "BadRequest");
           return;
         }
 

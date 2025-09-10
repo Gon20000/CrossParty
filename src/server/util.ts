@@ -1,6 +1,6 @@
 import type { WebSocket } from "ws";
 import { styleText } from "util";
-import { Game, type Player } from "../game.ts";
+import { Game, GameError, type Player} from "../game.ts";
 import { serverMark, errorMark, xMark, oMark } from "../styles.ts";
 import type { ErrorCode, GameRequest } from "../types.ts";
 
@@ -26,7 +26,8 @@ const sendError = (ws : WebSocket, code : ErrorCode, msg? : string) => {
   const messages : {[Code in ErrorCode]?: string} = {
     "PlayerNotFound": "This player doesn't exist, please double check their ID!",
     "PlayerInGame": "This player is currently in a game, please try another ID.",
-    "PlayerMatching": "This player is currently matching, please try again later."
+    "PlayerMatching": "This player is currently matching, please try again later.",
+    "BadRequest": "Request is invalid or not allowed.",
   };
 
   const message = messages[code] || msg;
@@ -92,7 +93,7 @@ const handleMove = async (player : Player, opponent : Player, rowNum : number, c
       player.endGame();
   }
   catch (error) {
-    if (error.name !== "GameError")
+    if (!(error instanceof GameError))
       throw error;
 
     sendError(player.ws, "GameError", error.message);

@@ -212,6 +212,7 @@ class Player {
 
 export {
   Player,
-  Game
+  Game,
+  GameError
 };
 

@@ -1,7 +1,8 @@
-import readline from "readline/promises";
+import { createInterface } from "readline/promises";
 import { errorMark2 } from "./styles.ts";
+import type { GameRequest } from "./types.ts";
 
-const rl = readline.createInterface({
+const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
 });
@@ -92,25 +93,41 @@ const askNum = async (q : string, aborter : Aborter, low : number = -1, high : n
 
 const getMove = async (aborter : Aborter) => {
   const rowNum = await askNum("Which row do you want to play the move on?", aborter, 1, 3);
+  const abortedRes = {rowNum: null, colNum: null};
 
   if (rowNum === null)
-    return {rowNum: null, colNum: null};
+    return abortedRes;
 
   const colNum = await askNum("Which column do you want to play the move on?", aborter, 1, 3);
   if (colNum === null)
-    return {rowNum: null, colNum: null};
+    return abortedRes;
 
   return {rowNum, colNum};
 };
 
 const exit = () => rl.close();
 
+// Validate the request (input) from the server/client
+const parseRequest = (req : string) => {
+  try {
+    const res = JSON.parse(req);
+    if (!("type" in res) || typeof(res.type) !== "string") return null;
+    return res as GameRequest;
+  }
+  catch (_) {
+    // Invalid JSON
+    return null;
+  }
+};
+
 export {
   Aborter,
-  askYesNo,
+  ask,
   askNum,
+  askYesNo,
   exit,
   getMove,
   locker,
+  parseRequest,
 };
 

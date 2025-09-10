@@ -1,24 +1,32 @@
 import { WebSocket } from "ws";
-import { Aborter, askYesNo, locker, exit } from "../input.ts";
-import { handleError, init, playMove } from "./util.ts";
+import { Aborter, askYesNo, locker, exit, parseRequest } from "../input.ts";
+import { handleError, init, playMove, promptURL } from "./util.ts";
 import { banner, errorMark } from "../styles.ts";
 import type { GameRequest, Unlocker } from "../types.ts";
-
-// Replace this with the url you got from the server owner
-const url = "http://localhost:5050";
-
-const ws = new WebSocket(url.replace("http", "ws"));
 
 let unlock : Unlocker;
 const aborter = new Aborter();
 let id : number;
 
-ws.on("open", async () => {
+// Get the server URL from the user for connection
+const url = await promptURL(aborter);
+
+// Exit the program if the user aborted the previous prompt
+if (!url)
+  process.exit();
+
+console.log(`Connecting to ${url}`);
+const ws = new WebSocket(url.replace("http", "ws"));
+
+ws.on("open", () => {
   console.log(banner);
 });
 
 ws.on("message", async (data) => {
-  const req : GameRequest = JSON.parse(data.toString());
+  const req = parseRequest(data.toString());
+  // Invalid request from the server (defensive scenario)
+  if (!req)
+    return;
 
   switch (req.type) {
     case "Authorization":
@@ -87,8 +95,15 @@ ws.on("message", async (data) => {
 });
 
 ws.on("close", () => {
-  console.log("bye");
+  console.log("See you later!");
   exit();
 });
 
-ws.on("error", console.error);
+ws.on("error", (err) => {
+  if ("code" in err && err.code === "ENOTFOUND") {
+    console.error(errorMark, "Couldn't connect to the server, please double check the server link!");
+    return;
+  }
+
+  console.error(err);
+});
